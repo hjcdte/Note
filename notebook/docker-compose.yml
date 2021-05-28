@@ -1,0 +1,49 @@
+version: '3.1'
+
+services:
+
+  myredis:
+    image: redis:5.0.12-buster
+
+
+  db:
+    image: postgres:13.3-alpine
+    environment:
+      - POSTGRES_DB=note
+      - POSTGRES_USER=hjc
+      - POSTGRES_PASSWORD=kuaile
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+#  dbmysql:
+#    image: mysql/mysql-server:8.0
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=kuaile
+#      - MYSQL_DATABAS=note
+
+
+  django:
+    build: .
+    volumes:
+      - .:/opt/notebook
+    links:
+      - db
+      - myredis
+    command:
+#      gunicorn -k gevent notebook.wsgi:application
+       gunicorn -k gevent -w 2 -b 0.0.0.0:8000 notebook.wsgi:application
+#      python manage.py runserver 0.0.0.0:8000
+
+  mynginx:
+    image: nginx:latest
+    expose:
+      - "80"
+    ports:
+      - "80:80"
+    links:
+      - django
+    depends_on:
+      - django
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      
+

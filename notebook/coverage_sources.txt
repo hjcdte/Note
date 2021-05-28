@@ -1,0 +1,6 @@
+[run]
+include =
+    note/*
+omit =
+    note/admin.py
+    note/migrations/*
